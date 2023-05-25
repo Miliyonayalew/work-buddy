@@ -1,7 +1,9 @@
 import { useState} from 'react'
 import { useWorkoutsContext } from '../Hooks/useWorkoutsContext'
+import { useAuthContext } from '../Hooks/useAuthContext'
 
 const WorkoutForm = () => {
+  const { user } = useAuthContext()
   const { dispatch } = useWorkoutsContext()
   const [title, setTitle] = useState('')
   const [load, setLoads] = useState('')
@@ -12,6 +14,10 @@ const WorkoutForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if(!user){
+      setStatus('You must be logged in to add a workout')
+      return
+    }
 
     const workouts = {title, load, reps}
 
@@ -19,7 +25,8 @@ const WorkoutForm = () => {
       method: 'POST',
       body: JSON.stringify(workouts),
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${user.token}`
       }
     })
     const res = await response.json()
@@ -38,7 +45,7 @@ const WorkoutForm = () => {
       dispatch({type: 'CREATE_WORKOUT', payload: res.workout})
     }
   }
-  console.log(error)
+
   return (
     <div className='mx-3 flex flex-col gap-3'>
       <h1 className='text-2xl'>Add new Workout</h1>
@@ -75,8 +82,8 @@ const WorkoutForm = () => {
             Submit
         </button>
       </form>
-      <div className={status || msg && `w-full flex justify-center items-center py-5 lg:max-w-full rounded  text-white overflow-hidden shadow-lg mb-4 ${status ? 'bg-red-200 text-red-600' : 'bg-green-600' }`}>
-        <p>{status ? status : msg}</p>
+      <div className={`${status || msg &&  'w-full flex justify-center items-center py-5 lg:max-w-full rounded  text-white overflow-hidden shadow-lg mb-4'} ${status ? 'bg-red-200 text-red-600' : 'bg-green-600' }`}>
+        <p className={`${ status || msg && 'p-3'}`}>{status ? status : msg}</p>
       </div>
     </div>
   )

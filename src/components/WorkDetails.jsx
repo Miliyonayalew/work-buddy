@@ -2,16 +2,25 @@ import PropTypes from 'prop-types'
 import Moment from 'moment';
 import { TrashIcon } from '@heroicons/react/24/solid'
 import { useWorkoutsContext } from '../Hooks/useWorkoutsContext';
+import { useAuthContext } from '../Hooks/useAuthContext';
 
 const WorkDetails = ({ workout }) => {
   const { dispatch } = useWorkoutsContext()
   const { title, load, reps, createdAt } = workout
+  const { user } = useAuthContext()
   // const now = new Date(createdAt);
   const formattedDate = Moment(createdAt).fromNow({withoutSuffix: true});
 
   const handleClick = async () => {
+    if(!user){
+      return
+    }
+
     const response = await fetch(`http://localhost:4000/api/workouts/${workout._id}`, {
       method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${user.token}`
+      }
     })
 
     const res = await response.json()
